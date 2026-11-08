@@ -1,9 +1,0 @@
-{
-  "_id": "_design/resumen_fiscal",
-  "views": {
-    "totales_mensuales": {
-      "map": "function (doc) {\n  if ((doc.tipo === 'venta' || doc.tipo === 'compra') && doc.fecha && doc.iva) {\n    var mes = doc.fecha.substring(0, 7);\n    emit([mes, doc.tipo], parseFloat(doc.iva));\n  }\n}",
-      "reduce": "_sum"
-    }
-  }
-}

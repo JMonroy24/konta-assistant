@@ -1,7 +1,0 @@
-{
-  "index": {
-    "fields": ["tipo", "fecha"]
-  },
-  "name": "idx_tipo_fecha",
-  "type": "json"
-}

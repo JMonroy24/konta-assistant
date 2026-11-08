@@ -1,0 +1,7 @@
+[
+  { "ddoc": "idx_tipo_fecha",           "name": "idx_tipo_fecha",           "type": "json", "index": { "fields": ["tipo", "fecha"] } },
+  { "ddoc": "idx_tipo_estado",          "name": "idx_tipo_estado",          "type": "json", "index": { "fields": ["tipo", "estado"] } },
+  { "ddoc": "idx_tipo_periodo",         "name": "idx_tipo_periodo",         "type": "json", "index": { "fields": ["tipo", "periodo", "obligacion"] } },
+  { "ddoc": "idx_recordatorio_activos", "name": "idx_recordatorio_activos", "type": "json", "index": { "fields": ["tipo", "estado", "fecha_limite"] } },
+  { "ddoc": "idx_factura_venta",        "name": "idx_factura_venta",        "type": "json", "index": { "fields": ["tipo", "venta_id"] } }
+]

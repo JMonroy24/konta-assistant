@@ -1,0 +1,75 @@
+{
+  "docs": [
+    {
+      "_id": "regla:iva_general:v1", "tipo": "regla_fiscal", "codigo": "iva_general", "version": 1,
+      "descripcion": "Tasa general del IVA (Impuesto a la Transferencia de Bienes Muebles y a la Prestacion de Servicios)",
+      "parametros": { "tasa": "0.13" },
+      "vigencia_desde": "1995-07-01", "vigencia_hasta": null,
+      "fuente_normativa": "Ley de IVA (El Salvador), art. 54 - VERIFICAR articulo y vigencia",
+      "verificada": false
+    },
+    {
+      "_id": "regla:pago_cuenta:v1", "tipo": "regla_fiscal", "codigo": "pago_cuenta", "version": 1,
+      "descripcion": "Pago a cuenta mensual del impuesto sobre la renta, sobre ingresos brutos del mes",
+      "parametros": { "tasa": "0.0175", "base": "ingresos_brutos_mensuales", "redondeo": "half_up_2" },
+      "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
+      "fuente_normativa": "Codigo Tributario, art. 151 - VERIFICAR tasa, excepciones y fecha de vigencia",
+      "verificada": false
+    },
+    {
+      "_id": "regla:renta_natural_tramos:v1", "tipo": "regla_fiscal", "codigo": "renta_natural_tramos", "version": 1,
+      "descripcion": "Tabla progresiva anual de renta, persona natural: impuesto = cuota_fija + tasa * (renta - exceso_sobre)",
+      "parametros": {
+        "tramos": [
+          { "desde": "0.01",     "hasta": "4064.00",  "tasa": "0.00", "cuota_fija": "0.00",    "exceso_sobre": "0.00" },
+          { "desde": "4064.01",  "hasta": "9142.86",  "tasa": "0.10", "cuota_fija": "212.12",  "exceso_sobre": "4064.00" },
+          { "desde": "9142.87",  "hasta": "22857.14", "tasa": "0.20", "cuota_fija": "720.00",  "exceso_sobre": "9142.86" },
+          { "desde": "22857.15", "hasta": null,       "tasa": "0.30", "cuota_fija": "3462.86", "exceso_sobre": "22857.14" }
+        ]
+      },
+      "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
+      "fuente_normativa": "Ley de Impuesto sobre la Renta, art. 37 - VERIFICAR tramos vigentes",
+      "verificada": false
+    },
+    {
+      "_id": "regla:renta_juridica:v1", "tipo": "regla_fiscal", "codigo": "renta_juridica", "version": 1,
+      "descripcion": "Tasa de renta para persona juridica",
+      "parametros": { "tasa_general": "0.30", "tasa_reducida": "0.25", "umbral_ingresos_anuales": "150000.00" },
+      "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
+      "fuente_normativa": "Ley de Impuesto sobre la Renta, art. 41 - VERIFICAR tasas y umbral",
+      "verificada": false
+    },
+    {
+      "_id": "regla:plazo_iva_f07:v1", "tipo": "regla_fiscal", "codigo": "plazo_iva_f07", "version": 1,
+      "descripcion": "Presentacion y pago de IVA mensual",
+      "parametros": { "modo": "dias_habiles_mes_siguiente", "dias": 10 },
+      "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
+      "fuente_normativa": "Ley de IVA - VERIFICAR plazo y calendario de dias habiles/feriados",
+      "verificada": false
+    },
+    {
+      "_id": "regla:plazo_pago_cuenta_f14:v1", "tipo": "regla_fiscal", "codigo": "plazo_pago_cuenta_f14", "version": 1,
+      "descripcion": "Declaracion y pago del pago a cuenta mensual",
+      "parametros": { "modo": "dias_habiles_mes_siguiente", "dias": 10 },
+      "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
+      "fuente_normativa": "Codigo Tributario - VERIFICAR plazo",
+      "verificada": false
+    },
+    {
+      "_id": "regla:plazo_renta_anual_f11:v1", "tipo": "regla_fiscal", "codigo": "plazo_renta_anual_f11", "version": 1,
+      "descripcion": "Declaracion anual de renta",
+      "parametros": { "modo": "fecha_fija_anual", "mes": 4, "dia": 30 },
+      "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
+      "fuente_normativa": "Ley de Impuesto sobre la Renta - VERIFICAR plazo",
+      "verificada": false
+    },
+    {
+      "_id": "regla:multa_extemporanea:v1", "tipo": "regla_fiscal", "codigo": "multa_extemporanea", "version": 1,
+      "descripcion": "PLACEHOLDER: multa estimada por presentacion extemporanea. Completar solo tras verificar la normativa.",
+      "parametros": { "estado": "por_definir" },
+      "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
+      "fuente_normativa": "Codigo Tributario - POR DEFINIR (no usar en calculos hasta verificar)",
+      "verificada": false
+    }
+  ]
+}

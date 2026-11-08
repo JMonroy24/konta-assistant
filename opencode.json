@@ -1,0 +1,32 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/big-pickle",
+  "small_model": "opencode/big-pickle",
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen3-8b-12k": {
+          "name": "Qwen3 8B (local)",
+          "tools": true,
+          "limit": {
+            "context": 12288,
+            "output": 4096
+          }
+        },
+        "qwen3:4b": {
+          "name": "Qwen3 4B (local, ligero)",
+          "tools": true,
+          "limit": {
+            "context": 8192,
+            "output": 2048
+          }
+        }
+      }
+    }
+  }
+}

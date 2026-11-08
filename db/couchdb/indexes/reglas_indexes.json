@@ -1,0 +1,3 @@
+[
+  { "ddoc": "idx_regla_vigencia", "name": "idx_regla_vigencia", "type": "json", "index": { "fields": ["tipo", "codigo", "vigencia_desde"] } }
+]

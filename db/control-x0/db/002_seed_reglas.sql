@@ -1,0 +1,15 @@
+-- GENERADO desde couchdb/seed/reglas_fiscales.json (no editar a mano; regenerar si cambia el JSON).
+-- Todas las reglas llevan verificada = false hasta contrastarlas con la normativa vigente de Hacienda.
+BEGIN;
+SET LOCAL search_path = fiscal, public;
+INSERT INTO reglas_fiscales (id, codigo, version, descripcion, parametros, vigencia_desde, vigencia_hasta, fuente_normativa, verificada) VALUES
+  ('regla:iva_general:v1', 'iva_general', 1, 'Tasa general del IVA (Impuesto a la Transferencia de Bienes Muebles y a la Prestacion de Servicios)', '{"tasa": "0.13"}'::jsonb, '1995-07-01', NULL, 'Ley de IVA (El Salvador), art. 54 - VERIFICAR articulo y vigencia', false),
+  ('regla:pago_cuenta:v1', 'pago_cuenta', 1, 'Pago a cuenta mensual del impuesto sobre la renta, sobre ingresos brutos del mes', '{"tasa": "0.0175", "base": "ingresos_brutos_mensuales", "redondeo": "half_up_2"}'::jsonb, '2020-01-01', NULL, 'Codigo Tributario, art. 151 - VERIFICAR tasa, excepciones y fecha de vigencia', false),
+  ('regla:renta_natural_tramos:v1', 'renta_natural_tramos', 1, 'Tabla progresiva anual de renta, persona natural: impuesto = cuota_fija + tasa * (renta - exceso_sobre)', '{"tramos": [{"desde": "0.01", "hasta": "4064.00", "tasa": "0.00", "cuota_fija": "0.00", "exceso_sobre": "0.00"}, {"desde": "4064.01", "hasta": "9142.86", "tasa": "0.10", "cuota_fija": "212.12", "exceso_sobre": "4064.00"}, {"desde": "9142.87", "hasta": "22857.14", "tasa": "0.20", "cuota_fija": "720.00", "exceso_sobre": "9142.86"}, {"desde": "22857.15", "hasta": null, "tasa": "0.30", "cuota_fija": "3462.86", "exceso_sobre": "22857.14"}]}'::jsonb, '2020-01-01', NULL, 'Ley de Impuesto sobre la Renta, art. 37 - VERIFICAR tramos vigentes', false),
+  ('regla:renta_juridica:v1', 'renta_juridica', 1, 'Tasa de renta para persona juridica', '{"tasa_general": "0.30", "tasa_reducida": "0.25", "umbral_ingresos_anuales": "150000.00"}'::jsonb, '2020-01-01', NULL, 'Ley de Impuesto sobre la Renta, art. 41 - VERIFICAR tasas y umbral', false),
+  ('regla:plazo_iva_f07:v1', 'plazo_iva_f07', 1, 'Presentacion y pago de IVA mensual', '{"modo": "dias_habiles_mes_siguiente", "dias": 10}'::jsonb, '2020-01-01', NULL, 'Ley de IVA - VERIFICAR plazo y calendario de dias habiles/feriados', false),
+  ('regla:plazo_pago_cuenta_f14:v1', 'plazo_pago_cuenta_f14', 1, 'Declaracion y pago del pago a cuenta mensual', '{"modo": "dias_habiles_mes_siguiente", "dias": 10}'::jsonb, '2020-01-01', NULL, 'Codigo Tributario - VERIFICAR plazo', false),
+  ('regla:plazo_renta_anual_f11:v1', 'plazo_renta_anual_f11', 1, 'Declaracion anual de renta', '{"modo": "fecha_fija_anual", "mes": 4, "dia": 30}'::jsonb, '2020-01-01', NULL, 'Ley de Impuesto sobre la Renta - VERIFICAR plazo', false),
+  ('regla:multa_extemporanea:v1', 'multa_extemporanea', 1, 'PLACEHOLDER: multa estimada por presentacion extemporanea. Completar solo tras verificar la normativa.', '{"estado": "por_definir"}'::jsonb, '2020-01-01', NULL, 'Codigo Tributario - POR DEFINIR (no usar en calculos hasta verificar)', false)
+ON CONFLICT (id) DO NOTHING;
+COMMIT;
