@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DocumentoFacturaElectronica",
+  "type": "object",
+  "required": ["_id", "tipo", "numero_control_simulado", "estado_validacion", "referencia_venta_id", "hora_emision"],
+  "properties": {
+    "_id": {
+      "type": "string",
+      "pattern": "^factura:"
+    },
+    "_rev": { "type": "string" },
+    "tipo": { "type": "string", "enum": ["factura"] },
+    "numero_control_simulado": { "type": "string" },
+    "estado_validacion": {
+      "type": "string",
+      "enum": ["pendiente", "aceptado_simulado", "rechazado"]
+    },
+    "referencia_venta_id": { "type": "string" },
+    "hora_emision": { "type": "string", "format": "date-time" },
+    "mensaje_simulador": { "type": "string" }
+  }
+}

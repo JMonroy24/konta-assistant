@@ -1,0 +1,7 @@
+{
+  "index": {
+    "fields": ["tipo", "estado_validacion", "estado"]
+  },
+  "name": "idx_tipo_estado",
+  "type": "json"
+}

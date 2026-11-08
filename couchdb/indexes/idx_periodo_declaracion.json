@@ -1,0 +1,7 @@
+{
+  "index": {
+    "fields": ["tipo", "periodo"]
+  },
+  "name": "idx_periodo_declaracion",
+  "type": "json"
+}

@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  # Base CouchDB Remota (Servidor central)
+  couchdb-remote:
+    image: couchdb:3.3
+    container_name: konta-couchdb-remote
+    environment:
+      COUCHDB_USER: ${COUCHDB_USER:-admin}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD:-adminsecretpassword}
+    ports:
+      - "5984:5984"
+    volumes:
+      - couchdb_remote_data:/opt/couchdb/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Base CouchDB Local (Nodo cliente para experimento X1)
+  couchdb-local:
+    image: couchdb:3.3
+    container_name: konta-couchdb-local
+    environment:
+      COUCHDB_USER: ${COUCHDB_USER:-admin}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD:-adminsecretpassword}
+    ports:
+      - "5985:5984"
+    volumes:
+      - couchdb_local_data:/opt/couchdb/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Simulador Mock del Ministerio de Hacienda (El Salvador DTE)
+  mock-hacienda:
+    build:
+      context: .
+      dockerfile: mock-hacienda/Dockerfile
+    container_name: konta-mock-hacienda
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+
+  # API Backend Rust (X1 - Clean Architecture + CouchDB)
+  backend-api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: konta-backend-api
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - COUCHDB_REMOTE_URL=http://couchdb-remote:5984
+      - COUCHDB_LOCAL_URL=http://couchdb-local:5984
+      - COUCHDB_USER=${COUCHDB_USER:-admin}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-adminsecretpassword}
+      - MOCK_HACIENDA_URL=http://mock-hacienda:8081
+    depends_on:
+      couchdb-remote:
+        condition: service_healthy
+      mock-hacienda:
+        condition: service_started
+
+  # Base PostgreSQL (Grupo de Control X0)
+  postgres-control:
+    image: postgres:16-alpine
+    container_name: konta-postgres-control
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${POSTGRES_DB:-konta_control_x0}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_control_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # API Backend Síncrono (Grupo Control X0)
+  control-x0:
+    build:
+      context: .
+      dockerfile: control-x0/Dockerfile
+    container_name: konta-control-x0
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - DATABASE_URL=postgres://postgres:postgrespassword@postgres-control:5432/konta_control_x0
+    depends_on:
+      postgres-control:
+        condition: service_healthy
+
+volumes:
+  couchdb_remote_data:
+  couchdb_local_data:
+  postgres_control_data:

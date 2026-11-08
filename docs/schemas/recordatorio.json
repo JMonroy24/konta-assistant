@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DocumentoRecordatorio",
+  "type": "object",
+  "required": ["_id", "tipo", "obligacion", "fecha_limite", "estado", "negocio_id"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_rev": { "type": "string" },
+    "tipo": { "type": "string", "enum": ["recordatorio"] },
+    "obligacion": { "type": "string" },
+    "fecha_limite": { "type": "string", "format": "date" },
+    "estado": { "type": "string", "enum": ["pendiente", "enviado", "cumplido"] },
+    "negocio_id": { "type": "string" }
+  }
+}

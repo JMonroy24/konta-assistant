@@ -1,0 +1,43 @@
+{
+  "docs": [
+    {
+      "_id": "regla_fiscal:IVA_SV_V1",
+      "tipo": "regla_fiscal",
+      "codigo": "IVA_SV",
+      "vigencia_desde": "2020-01-01",
+      "vigencia_hasta": null,
+      "fuente_normativa": "Ley de Impuesto a la Transferencia de Bienes Muebles y a la Prestación de Servicios, Art. 54",
+      "version": 1,
+      "parametros": {
+        "tasa_general": 0.13,
+        "descripcion": "Tasa estándar del 13% sobre transferencias y prestaciones"
+      }
+    },
+    {
+      "_id": "regla_fiscal:PAGO_A_CUENTA_SV_V1",
+      "tipo": "regla_fiscal",
+      "codigo": "PAGO_A_CUENTA_SV",
+      "vigencia_desde": "2020-01-01",
+      "vigencia_hasta": null,
+      "fuente_normativa": "Ley de Impuesto sobre la Renta, Art. 151",
+      "version": 1,
+      "parametros": {
+        "tasa_ingresos_brutos": 0.0175,
+        "descripcion": "Anticipo a cuenta del Impuesto sobre la Renta del 1.75% mensual"
+      }
+    },
+    {
+      "_id": "regla_fiscal:CALENDARIO_F07_V1",
+      "tipo": "regla_fiscal",
+      "codigo": "CALENDARIO_F07",
+      "vigencia_desde": "2020-01-01",
+      "vigencia_hasta": null,
+      "fuente_normativa": "Código Tributario de El Salvador, Art. 114",
+      "version": 1,
+      "parametros": {
+        "dia_habil_limite": 10,
+        "descripcion": "Presentación y pago de declaración mensual de IVA dentro de los primeros 10 días hábiles"
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "docs": [
+    {
+      "_id": "venta:2026-11-01:0001",
+      "tipo": "venta",
+      "fecha": "2026-11-01",
+      "descripcion": "Venta de café de especialidad y postres",
+      "base": "150.00",
+      "iva": "19.50",
+      "total": "169.50",
+      "contraparte": "Consumidor Final",
+      "creado_por": "usuario:cajero",
+      "origen": "local",
+      "creado_en": "2026-11-01T14:30:00Z"
+    },
+    {
+      "_id": "compra:2026-11-02:0002",
+      "tipo": "compra",
+      "fecha": "2026-11-02",
+      "descripcion": "Compra de granos de café e insumos de empaque",
+      "base": "80.00",
+      "iva": "10.40",
+      "total": "90.40",
+      "contraparte": "Distribuidora Cafetalera SV",
+      "creado_por": "usuario:administrador",
+      "origen": "local",
+      "creado_en": "2026-11-02T10:15:00Z"
+    },
+    {
+      "_id": "factura:2026-11-01:dte-01",
+      "tipo": "factura",
+      "numero_control_simulado": "DTE-01-M001-00000001",
+      "estado_validacion": "aceptado_simulado",
+      "referencia_venta_id": "venta:2026-11-01:0001",
+      "hora_emision": "2026-11-01T14:31:00Z",
+      "mensaje_simulador": "Documento validado en simulador Hacienda"
+    },
+    {
+      "_id": "recordatorio:2026-11:iva-f07",
+      "tipo": "recordatorio",
+      "obligacion": "Declaración y Pago de IVA (F-07) Período Noviembre",
+      "fecha_limite": "2026-12-10",
+      "estado": "pendiente",
+      "negocio_id": "demo"
+    }
+  ]
+}

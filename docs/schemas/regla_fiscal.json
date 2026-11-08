@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DocumentoReglaFiscal",
+  "type": "object",
+  "required": ["_id", "tipo", "codigo", "vigencia_desde", "fuente_normativa", "version", "parametros"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_rev": { "type": "string" },
+    "tipo": { "type": "string", "enum": ["regla_fiscal"] },
+    "codigo": { "type": "string" },
+    "vigencia_desde": { "type": "string", "format": "date" },
+    "vigencia_hasta": { "type": ["string", "null"], "format": "date" },
+    "fuente_normativa": { "type": "string" },
+    "version": { "type": "integer" },
+    "parametros": { "type": "object" }
+  }
+}

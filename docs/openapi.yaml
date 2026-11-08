@@ -1,0 +1,94 @@
+openapi: 3.0.3
+info:
+  title: Konta Assistant API
+  version: 0.1.0
+  description: API Backend para el Asistente Fiscal y Contable de Microempresas en El Salvador
+paths:
+  /auth/login:
+    post:
+      summary: Autenticación con roles (RBAC)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Token de autenticación y rol asignado
+  /ventas:
+    post:
+      summary: Registrar venta
+      responses:
+        '201':
+          description: Venta registrada con éxito
+  /compras:
+    post:
+      summary: Registrar compra
+      responses:
+        '201':
+          description: Compra registrada con éxito
+  /operaciones:
+    get:
+      summary: Listar operaciones por mes (Mango Query)
+      parameters:
+        - name: mes
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "2026-11"
+      responses:
+        '200':
+          description: Lista de operaciones
+  /facturas:
+    post:
+      summary: Emitir factura electrónica simulada
+      responses:
+        '202':
+          description: Factura recibida y enviada a validación simulada
+  /impuestos/resumen:
+    get:
+      summary: Cálculo de impuestos del período
+      parameters:
+        - name: mes
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resumen con IVA a pagar/remanente, pago a cuenta y explicación
+  /declaraciones/borrador:
+    post:
+      summary: Generar borrador de declaración mensual
+      responses:
+        '200':
+          description: Borrador generado
+  /recordatorios:
+    get:
+      summary: Listar recordatorios de vencimiento próximos
+      responses:
+        '200':
+          description: Recordatorios activos
+  /sync/estado:
+    get:
+      summary: Estado de replicación y cola de sincronización
+      responses:
+        '200':
+          description: Estado actual de sincronización
+  /salud:
+    get:
+      summary: Verificación de salud del servicio
+      responses:
+        '200':
+          description: OK
+  /metricas:
+    get:
+      summary: Métricas de telemetría por endpoint
+      responses:
+        '200':
+          description: Métricas agregadas

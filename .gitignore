@@ -1,0 +1,34 @@
+# Environment and secrets
+.env
+*.env.local
+*.env.*.local
+
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock
+
+# Dart & Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.iml
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Benchmarks & Logs
+bench/results/
+*.csv
+*.log
+
+# CouchDB local data if mounted locally
+couchdb-data/
+postgres-data/
