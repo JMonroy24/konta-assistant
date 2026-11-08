@@ -12,9 +12,15 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset(
+              'assets/images/logo.png',
+              height: 70,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 8),
             const Text(
               'Asistente Fiscal SV',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.grey),
             ),
             const SizedBox(height: 24),
             const TextField(

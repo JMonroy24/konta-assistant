@@ -48,7 +48,11 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Konta - Asistente Fiscal'),
+        title: Image.asset(
+          'assets/images/logo.png',
+          height: 38,
+          fit: BoxFit.contain,
+        ),
       ),
       body: Column(
         children: [

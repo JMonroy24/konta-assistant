@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo.png" alt="Konta Logo" width="400"/>
+</p>
+
 # Konta Assistant - Asistente de Cumplimiento Fiscal y Contable
 
 Proyecto 6: Asistente de cumplimiento fiscal y contable automatizado para microempresas (El Salvador).  
