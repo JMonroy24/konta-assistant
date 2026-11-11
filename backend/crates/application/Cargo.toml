@@ -13,3 +13,10 @@ thiserror = { workspace = true }
 async-trait = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
+
+[features]
+testing = []
+
+[dev-dependencies]
+tokio = { workspace = true }
+rust_decimal_macros = { workspace = true }
