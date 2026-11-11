@@ -1,96 +1,92 @@
-use chrono::NaiveDate;
-use domain::{DomainError, Operacion, ResumenImpuestos, TipoOperacion};
-use rust_decimal::Decimal;
-use rust_decimal_macros::dec;
+pub mod calendario;
+pub mod explicacion;
+pub mod multas;
+pub mod reglas;
+pub mod renta;
+
+use domain::{DomainError, Operacion, Periodo, ResumenImpuestos, TipoOperacion};
+use rust_decimal::{Decimal, RoundingStrategy};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ParametrosFiscales {
-    pub tasa_iva: Decimal,            // Ej: 0.13
-    pub tasa_pago_a_cuenta: Decimal,   // Ej: 0.0175 (1.75%)
-    pub dia_limite_pago: u32,         // Ej: 10 de cada mes
+    pub tasa_iva: Decimal,           // Ej: 0.13
+    pub tasa_pago_a_cuenta: Decimal, // Ej: 0.0175 (1.75%)
 }
 
+#[cfg(test)]
 impl Default for ParametrosFiscales {
     fn default() -> Self {
         Self {
-            tasa_iva: dec!(0.13),
-            tasa_pago_a_cuenta: dec!(0.0175),
-            dia_limite_pago: 10,
+            tasa_iva: Decimal::new(13, 2),
+            tasa_pago_a_cuenta: Decimal::new(175, 4),
         }
     }
+}
+
+/// Redondeo half-up (alejado de cero) a 2 decimales.
+pub(crate) fn redondear(valor: Decimal) -> Decimal {
+    valor.round_dp_with_strategy(2, RoundingStrategy::MidpointAwayFromZero)
 }
 
 pub struct MotorFiscal;
 
 impl MotorFiscal {
+    /// Calcula el resumen de IVA y pago a cuenta de un período.
+    ///
+    /// Solo considera las operaciones cuya fecha cae dentro del período. Un
+    /// `remanente_periodo_anterior` se descuenta del IVA a pagar antes de
+    /// determinar el remanente del período.
     pub fn calcular_impuestos(
-        periodo: &str,
+        periodo: Periodo,
         operaciones: &[Operacion],
         params: &ParametrosFiscales,
+        remanente_periodo_anterior: Option<Decimal>,
     ) -> Result<ResumenImpuestos, DomainError> {
-        let mut debito_iva = Decimal::ZERO;
-        let mut credito_iva = Decimal::ZERO;
-        let mut ingresos_brutos = Decimal::ZERO;
+        let (inicio, fin) = periodo.rango_fechas()?;
 
-        for op in operaciones {
+        let mut ingresos_gravados = Decimal::ZERO;
+        let mut debito = Decimal::ZERO;
+        let mut credito = Decimal::ZERO;
+
+        for op in operaciones
+            .iter()
+            .filter(|op| op.fecha >= inicio && op.fecha <= fin)
+        {
             match op.tipo {
                 TipoOperacion::Venta => {
-                    debito_iva += op.iva;
-                    ingresos_brutos += op.base;
+                    debito += op.iva;
+                    ingresos_gravados += op.base;
                 }
                 TipoOperacion::Compra => {
-                    credito_iva += op.iva;
+                    credito += op.iva;
                 }
             }
         }
 
-        let (iva_a_pagar, iva_remanente) = if debito_iva >= credito_iva {
-            (debito_iva - credito_iva, Decimal::ZERO)
+        let ingresos_gravados = redondear(ingresos_gravados);
+        let debito = redondear(debito);
+        let credito = redondear(credito);
+        let pago_a_cuenta = redondear(ingresos_gravados * params.tasa_pago_a_cuenta);
+
+        let remanente_anterior = remanente_periodo_anterior.unwrap_or(Decimal::ZERO);
+        let neto = redondear(debito - credito - remanente_anterior);
+
+        let (iva_a_pagar, remanente) = if neto > Decimal::ZERO {
+            (neto, Decimal::ZERO)
         } else {
-            (Decimal::ZERO, credito_iva - debito_iva)
+            (Decimal::ZERO, -neto)
         };
-
-        // Pago a cuenta = ingresos gravados * tasa (ej: 1.75%)
-        let pago_a_cuenta = (ingresos_brutos * params.tasa_pago_a_cuenta).round_dp(2);
-
-        // Parse año y mes para fecha límite
-        let parts: Vec<&str> = periodo.split('-').collect();
-        let (anio, mes) = if parts.len() == 2 {
-            let a: i32 = parts[0].parse().unwrap_or(2026);
-            let m: u32 = parts[1].parse().unwrap_or(1);
-            let next_m = if m == 12 { 1 } else { m + 1 };
-            let next_a = if m == 12 { a + 1 } else { a };
-            (next_a, next_m)
-        } else {
-            (2026, 2)
-        };
-
-        let fecha_limite = NaiveDate::from_ymd_opt(anio, mes, params.dia_limite_pago)
-            .unwrap_or_else(|| NaiveDate::from_ymd_opt(2026, 2, 10).unwrap());
-
-        let explicacion = format!(
-            "Período {}: Débito IVA acumulado (${:.2}) menos Crédito IVA (${:.2}). \
-            Resultado IVA: ${:.2} {}. Pago a cuenta ({:.2}% de ${:.2}): ${:.2}.",
-            periodo,
-            debito_iva,
-            credito_iva,
-            if iva_a_pagar > Decimal::ZERO { iva_a_pagar } else { iva_remanente },
-            if iva_a_pagar > Decimal::ZERO { "a pagar" } else { "remanente a favor" },
-            params.tasa_pago_a_cuenta * dec!(100),
-            ingresos_brutos,
-            pago_a_cuenta
-        );
 
         Ok(ResumenImpuestos {
-            periodo: periodo.to_string(),
-            debito_iva,
-            credito_iva,
+            periodo,
+            ingresos_gravados,
+            debito,
+            credito,
             iva_a_pagar,
-            iva_remanente,
+            remanente,
+            remanente_periodo_anterior: remanente_periodo_anterior.map(redondear),
             pago_a_cuenta,
-            fecha_limite_pago: fecha_limite,
-            explicacion_calculo: explicacion,
         })
     }
 }
@@ -98,54 +94,193 @@ impl MotorFiscal {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Utc;
+    use chrono::{NaiveDate, Utc};
+    use rust_decimal_macros::dec;
+
+    fn operacion(tipo: TipoOperacion, fecha: &str, base: Decimal, iva: Decimal) -> Operacion {
+        let fecha = NaiveDate::parse_from_str(fecha, "%Y-%m-%d").expect("fecha de prueba válida");
+        Operacion {
+            id: format!("op-{}", fecha),
+            rev: None,
+            tipo,
+            fecha,
+            descripcion: "Operación de prueba".into(),
+            base,
+            iva,
+            total: base + iva,
+            contraparte: "Contraparte".into(),
+            creado_por: "usr1".into(),
+            origen: "local".into(),
+            creado_en: Utc::now(),
+        }
+    }
+
+    fn periodo(texto: &str) -> Periodo {
+        Periodo::parse(texto).expect("período de prueba válido")
+    }
 
     #[test]
-    fn test_calculo_periodo_sin_movimientos() {
+    fn test_iva_a_pagar_con_valores_conocidos() {
         let params = ParametrosFiscales::default();
-        let resumen = MotorFiscal::calcular_impuestos("2026-11", &[], &params).unwrap();
+        let venta = operacion(
+            TipoOperacion::Venta,
+            "2026-11-05",
+            dec!(100.00),
+            dec!(13.00),
+        );
+
+        let resumen = MotorFiscal::calcular_impuestos(periodo("2026-11"), &[venta], &params, None)
+            .expect("cálculo válido");
+
+        assert_eq!(resumen.ingresos_gravados, dec!(100.00));
+        assert_eq!(resumen.debito, dec!(13.00));
+        assert_eq!(resumen.credito, Decimal::ZERO);
+        assert_eq!(resumen.iva_a_pagar, dec!(13.00));
+        assert_eq!(resumen.remanente, Decimal::ZERO);
+        assert_eq!(resumen.pago_a_cuenta, dec!(1.75));
+    }
+
+    #[test]
+    fn test_ventas_con_redondeo_half_up() {
+        let params = ParametrosFiscales::default();
+        // 100.005 -> 100.01 y 13.005 -> 13.01 (half-up, alejado de cero).
+        let venta = operacion(
+            TipoOperacion::Venta,
+            "2026-11-10",
+            dec!(100.005),
+            dec!(13.005),
+        );
+
+        let resumen = MotorFiscal::calcular_impuestos(periodo("2026-11"), &[venta], &params, None)
+            .expect("cálculo válido");
+
+        assert_eq!(resumen.ingresos_gravados, dec!(100.01));
+        assert_eq!(resumen.debito, dec!(13.01));
+        assert_eq!(resumen.iva_a_pagar, dec!(13.01));
+    }
+
+    #[test]
+    fn test_solo_compras_genera_remanente() {
+        let params = ParametrosFiscales::default();
+        let compra = operacion(TipoOperacion::Compra, "2026-11-07", dec!(50.00), dec!(6.50));
+
+        let resumen = MotorFiscal::calcular_impuestos(periodo("2026-11"), &[compra], &params, None)
+            .expect("cálculo válido");
+
+        assert_eq!(resumen.ingresos_gravados, Decimal::ZERO);
+        assert_eq!(resumen.debito, Decimal::ZERO);
+        assert_eq!(resumen.credito, dec!(6.50));
         assert_eq!(resumen.iva_a_pagar, Decimal::ZERO);
-        assert_eq!(resumen.iva_remanente, Decimal::ZERO);
+        assert_eq!(resumen.remanente, dec!(6.50));
+    }
+
+    #[test]
+    fn test_periodo_vacio() {
+        let params = ParametrosFiscales::default();
+
+        let resumen = MotorFiscal::calcular_impuestos(periodo("2026-11"), &[], &params, None)
+            .expect("cálculo válido");
+
+        assert_eq!(resumen.ingresos_gravados, Decimal::ZERO);
+        assert_eq!(resumen.debito, Decimal::ZERO);
+        assert_eq!(resumen.credito, Decimal::ZERO);
+        assert_eq!(resumen.iva_a_pagar, Decimal::ZERO);
+        assert_eq!(resumen.remanente, Decimal::ZERO);
         assert_eq!(resumen.pago_a_cuenta, Decimal::ZERO);
     }
 
     #[test]
-    fn test_calculo_con_iva_a_pagar() {
+    fn test_mil_operaciones() {
         let params = ParametrosFiscales::default();
-        let venta = Operacion {
-            id: "v-1".into(),
-            rev: None,
-            tipo: TipoOperacion::Venta,
-            fecha: NaiveDate::from_ymd_opt(2026, 11, 5).unwrap(),
-            descripcion: "Venta servicio".into(),
-            base: dec!(100.00),
-            iva: dec!(13.00),
-            total: dec!(113.00),
-            contraparte: "Cliente A".into(),
-            creado_por: "usr1".into(),
-            origen: "local".into(),
-            creado_en: Utc::now(),
-        };
-        let compra = Operacion {
-            id: "c-1".into(),
-            rev: None,
-            tipo: TipoOperacion::Compra,
-            fecha: NaiveDate::from_ymd_opt(2026, 11, 6).unwrap(),
-            descripcion: "Compra insumos".into(),
-            base: dec!(50.00),
-            iva: dec!(6.50),
-            total: dec!(56.50),
-            contraparte: "Proveedor B".into(),
-            creado_por: "usr1".into(),
-            origen: "local".into(),
-            creado_en: Utc::now(),
-        };
+        let operaciones: Vec<Operacion> = (0..1000)
+            .map(|i| {
+                let dia = (i % 28) + 1;
+                let fecha = format!("2026-11-{dia:02}");
+                operacion(TipoOperacion::Venta, &fecha, dec!(100.00), dec!(13.00))
+            })
+            .collect();
 
-        let resumen = MotorFiscal::calcular_impuestos("2026-11", &[venta, compra], &params).unwrap();
-        assert_eq!(resumen.debito_iva, dec!(13.00));
-        assert_eq!(resumen.credito_iva, dec!(6.50));
-        assert_eq!(resumen.iva_a_pagar, dec!(6.50));
-        assert_eq!(resumen.iva_remanente, Decimal::ZERO);
-        assert_eq!(resumen.pago_a_cuenta, dec!(1.75));
+        let resumen =
+            MotorFiscal::calcular_impuestos(periodo("2026-11"), &operaciones, &params, None)
+                .expect("cálculo válido");
+
+        assert_eq!(resumen.ingresos_gravados, dec!(100000.00));
+        assert_eq!(resumen.debito, dec!(13000.00));
+        assert_eq!(resumen.iva_a_pagar, dec!(13000.00));
+        assert_eq!(resumen.pago_a_cuenta, dec!(1750.00));
+    }
+
+    #[test]
+    fn test_remanente_periodo_anterior_se_descuenta() {
+        let params = ParametrosFiscales::default();
+        let venta = operacion(
+            TipoOperacion::Venta,
+            "2026-11-05",
+            dec!(100.00),
+            dec!(13.00),
+        );
+
+        let resumen = MotorFiscal::calcular_impuestos(
+            periodo("2026-11"),
+            &[venta],
+            &params,
+            Some(dec!(5.00)),
+        )
+        .expect("cálculo válido");
+
+        assert_eq!(resumen.iva_a_pagar, dec!(8.00));
+        assert_eq!(resumen.remanente, Decimal::ZERO);
+        assert_eq!(resumen.remanente_periodo_anterior, Some(dec!(5.00)));
+    }
+
+    #[test]
+    fn test_remanente_anterior_mayor_que_debito_genera_remanente() {
+        let params = ParametrosFiscales::default();
+        let venta = operacion(
+            TipoOperacion::Venta,
+            "2026-11-05",
+            dec!(100.00),
+            dec!(13.00),
+        );
+
+        let resumen = MotorFiscal::calcular_impuestos(
+            periodo("2026-11"),
+            &[venta],
+            &params,
+            Some(dec!(20.00)),
+        )
+        .expect("cálculo válido");
+
+        assert_eq!(resumen.iva_a_pagar, Decimal::ZERO);
+        assert_eq!(resumen.remanente, dec!(7.00));
+    }
+
+    #[test]
+    fn test_ignora_operaciones_de_otro_periodo() {
+        let params = ParametrosFiscales::default();
+        let de_octubre = operacion(
+            TipoOperacion::Venta,
+            "2026-10-31",
+            dec!(100.00),
+            dec!(13.00),
+        );
+        let de_noviembre = operacion(
+            TipoOperacion::Venta,
+            "2026-11-01",
+            dec!(200.00),
+            dec!(26.00),
+        );
+
+        let resumen = MotorFiscal::calcular_impuestos(
+            periodo("2026-11"),
+            &[de_octubre, de_noviembre],
+            &params,
+            None,
+        )
+        .expect("cálculo válido");
+
+        assert_eq!(resumen.ingresos_gravados, dec!(200.00));
+        assert_eq!(resumen.debito, dec!(26.00));
+        assert_eq!(resumen.iva_a_pagar, dec!(26.00));
     }
 }
