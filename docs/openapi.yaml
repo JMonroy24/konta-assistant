@@ -3,92 +3,677 @@ info:
   title: Konta Assistant API
   version: 0.1.0
   description: API Backend para el Asistente Fiscal y Contable de Microempresas en El Salvador
+servers:
+  - url: /
 paths:
   /auth/login:
     post:
       summary: Autenticación con roles (RBAC)
+      x-publico: true
+      x-roles-permitidos: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required: [username, password]
               properties:
-                username: { type: string }
-                password: { type: string }
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
       responses:
         '200':
           description: Token de autenticación y rol asignado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token, username, rol, negocio_id]
+                properties:
+                  token:
+                    type: string
+                  username:
+                    type: string
+                  rol:
+                    $ref: '#/components/schemas/RolUsuario'
+                  negocio_id:
+                    type: string
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /ventas:
     post:
       summary: Registrar venta
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador, contador, operador]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Operacion'
+                - type: object
+                  properties:
+                    tipo:
+                      type: string
+                      enum: [venta]
       responses:
         '201':
           description: Venta registrada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operacion'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /compras:
     post:
       summary: Registrar compra
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador, contador, operador]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Compra'
       responses:
         '201':
           description: Compra registrada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operacion'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /operaciones:
     get:
       summary: Listar operaciones por mes (Mango Query)
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador, contador, operador, lectura]
       parameters:
         - name: mes
           in: query
           required: false
           schema:
             type: string
-            example: "2026-11"
+            pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+            example: '2026-11'
       responses:
         '200':
           description: Lista de operaciones
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [periodo, total, operaciones]
+                properties:
+                  periodo:
+                    type: string
+                  total:
+                    type: integer
+                  operaciones:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Operacion'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /facturas:
     post:
       summary: Emitir factura electrónica simulada
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador, contador, operador]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [numero_control_simulado, referencia_venta_id]
+              properties:
+                numero_control_simulado:
+                  type: string
+                referencia_venta_id:
+                  type: string
+              additionalProperties: false
       responses:
         '202':
           description: Factura recibida y enviada a validación simulada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Factura'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /impuestos/resumen:
     get:
       summary: Cálculo de impuestos del período
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador, contador, lectura]
       parameters:
         - name: mes
           in: query
           required: false
           schema:
             type: string
+            pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+            example: '2026-11'
       responses:
         '200':
-          description: Resumen con IVA a pagar/remanente, pago a cuenta y explicación
+          description: Resumen con IVA a pagar/remanente y pago a cuenta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResumenImpuestos'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /declaraciones/borrador:
     post:
       summary: Generar borrador de declaración mensual
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador, contador]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [periodo, tipo_impuesto]
+              properties:
+                periodo:
+                  type: string
+                  pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+                tipo_impuesto:
+                  $ref: '#/components/schemas/TipoImpuesto'
+              additionalProperties: false
       responses:
         '200':
-          description: Borrador generado
+          description: Borrador generado o existente para el período y tipo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Declaracion'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /recordatorios:
     get:
       summary: Listar recordatorios de vencimiento próximos
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador, contador, operador, lectura]
       responses:
         '200':
           description: Recordatorios activos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [recordatorios]
+                properties:
+                  recordatorios:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recordatorio'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /sync/estado:
     get:
       summary: Estado de replicación y cola de sincronización
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador, contador, operador, lectura]
       responses:
         '200':
           description: Estado actual de sincronización
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pendientes, ultimo_checkpoint, conflictos]
+                properties:
+                  pendientes:
+                    type: integer
+                  ultimo_checkpoint:
+                    type: string
+                    nullable: true
+                  conflictos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conflicto'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /salud:
     get:
       summary: Verificación de salud del servicio
+      x-publico: true
+      x-roles-permitidos: [administrador, contador, operador, lectura]
       responses:
         '200':
-          description: OK
+          description: Estado del servicio
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [estado, timestamp]
+                properties:
+                  estado:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
   /metricas:
     get:
       summary: Métricas de telemetría por endpoint
+      security:
+        - bearerAuth: []
+      x-roles-permitidos: [administrador]
       responses:
         '200':
           description: Métricas agregadas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [throughput_rps, latencia_p50_ms, conflictos_detectados]
+                properties:
+                  throughput_rps:
+                    type: number
+                  latencia_p50_ms:
+                    type: number
+                  conflictos_detectados:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RolUsuario:
+      type: string
+      enum: [administrador, contador, operador, lectura]
+    TipoImpuesto:
+      type: string
+      enum: [iva_f07, pago_cuenta_f14, renta_f11]
+    TipoObligacion:
+      type: string
+      enum: [iva_f07, pago_cuenta_f14, renta_f11]
+    TipoOperacion:
+      type: string
+      enum: [venta, compra]
+    EstadoFactura:
+      type: string
+      enum: [pendiente, aceptado_simulado, rechazado]
+    EstadoDeclaracion:
+      type: string
+      enum: [borrador, presentada]
+    EstadoRecordatorio:
+      type: string
+      enum: [pendiente, enviado, cumplido]
+    EstadoConflicto:
+      type: string
+      enum: [pendiente, resuelto]
+    Importe:
+      type: string
+      pattern: '^-?[0-9]+(\.[0-9]+)?$'
+      example: '100.00'
+    Operacion:
+      type: object
+      required:
+        - _id
+        - tipo
+        - fecha
+        - descripcion
+        - base
+        - iva
+        - total
+        - contraparte
+        - creado_por
+        - origen
+        - creado_en
+      properties:
+        _id:
+          type: string
+        _rev:
+          type: string
+        tipo:
+          $ref: '#/components/schemas/TipoOperacion'
+        fecha:
+          type: string
+          format: date
+        descripcion:
+          type: string
+        base:
+          $ref: '#/components/schemas/Importe'
+        iva:
+          $ref: '#/components/schemas/Importe'
+        total:
+          $ref: '#/components/schemas/Importe'
+        contraparte:
+          type: string
+        creado_por:
+          type: string
+        origen:
+          type: string
+        creado_en:
+          type: string
+          format: date-time
+      additionalProperties: false
+    Compra:
+      allOf:
+        - $ref: '#/components/schemas/Operacion'
+        - type: object
+          properties:
+            tipo:
+              type: string
+              enum: [compra]
+    Factura:
+      type: object
+      required:
+        - _id
+        - tipo
+        - numero_control_simulado
+        - estado_validacion
+        - referencia_venta_id
+        - hora_emision
+        - mensaje_simulador
+      properties:
+        _id:
+          type: string
+        _rev:
+          type: string
+        tipo:
+          type: string
+        numero_control_simulado:
+          type: string
+        estado_validacion:
+          $ref: '#/components/schemas/EstadoFactura'
+        referencia_venta_id:
+          type: string
+        hora_emision:
+          type: string
+          format: date-time
+        mensaje_simulador:
+          type: string
+          nullable: true
+      additionalProperties: false
+    ResumenImpuestos:
+      type: object
+      required:
+        - periodo
+        - ingresos_gravados
+        - debito
+        - credito
+        - iva_a_pagar
+        - remanente
+        - remanente_periodo_anterior
+        - pago_a_cuenta
+      properties:
+        periodo:
+          type: string
+          pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+        ingresos_gravados:
+          $ref: '#/components/schemas/Importe'
+        debito:
+          $ref: '#/components/schemas/Importe'
+        credito:
+          $ref: '#/components/schemas/Importe'
+        iva_a_pagar:
+          $ref: '#/components/schemas/Importe'
+        remanente:
+          $ref: '#/components/schemas/Importe'
+        remanente_periodo_anterior:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]+)?$'
+          nullable: true
+        pago_a_cuenta:
+          $ref: '#/components/schemas/Importe'
+      additionalProperties: false
+    Declaracion:
+      type: object
+      required:
+        - _id
+        - tipo
+        - periodo
+        - tipo_impuesto
+        - montos_calculados
+        - estado
+        - fecha_presentacion
+      properties:
+        _id:
+          type: string
+        _rev:
+          type: string
+        tipo:
+          type: string
+        periodo:
+          type: string
+          pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+        tipo_impuesto:
+          $ref: '#/components/schemas/TipoImpuesto'
+        montos_calculados:
+          type: object
+          additionalProperties: true
+        estado:
+          $ref: '#/components/schemas/EstadoDeclaracion'
+        fecha_presentacion:
+          type: string
+          format: date-time
+          nullable: true
+      additionalProperties: false
+    Recordatorio:
+      type: object
+      required: [_id, tipo, obligacion, fecha_limite, estado, negocio_id]
+      properties:
+        _id:
+          type: string
+        _rev:
+          type: string
+        tipo:
+          type: string
+        obligacion:
+          $ref: '#/components/schemas/TipoObligacion'
+        fecha_limite:
+          type: string
+          format: date
+        estado:
+          $ref: '#/components/schemas/EstadoRecordatorio'
+        negocio_id:
+          type: string
+      additionalProperties: false
+    Conflicto:
+      type: object
+      required:
+        - doc_id
+        - revision_ganadora
+        - revisiones_en_conflicto
+        - campos_en_conflicto
+        - estado
+        - detectado_en
+      properties:
+        doc_id:
+          type: string
+        revision_ganadora:
+          type: string
+        revisiones_en_conflicto:
+          type: array
+          items:
+            type: object
+            required: [_rev, base, iva, total]
+            properties:
+              _rev:
+                type: string
+              base:
+                $ref: '#/components/schemas/Importe'
+              iva:
+                $ref: '#/components/schemas/Importe'
+              total:
+                $ref: '#/components/schemas/Importe'
+            additionalProperties: false
+        campos_en_conflicto:
+          type: array
+          items:
+            type: string
+            enum: [base, iva, total]
+        estado:
+          $ref: '#/components/schemas/EstadoConflicto'
+        detectado_en:
+          type: string
+          format: date-time
+          nullable: true
+      additionalProperties: false
+    ErrorApi:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        codigo:
+          type: string
+        detalles:
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+  responses:
+    Error400:
+      description: Solicitud inválida o error de validación
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApi'
+    Error401:
+      description: Token ausente o credenciales inválidas
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApi'
+    Error403:
+      description: El rol no tiene permiso para esta operación
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApi'
+    Error404:
+      description: Recurso o entidad no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApi'
+    Error409:
+      description: Conflicto de concurrencia o de estado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApi'

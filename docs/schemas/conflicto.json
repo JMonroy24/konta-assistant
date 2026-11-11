@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Conflicto",
+  "type": "object",
+  "required": [
+    "doc_id",
+    "revision_ganadora",
+    "revisiones_en_conflicto",
+    "campos_en_conflicto",
+    "estado",
+    "detectado_en"
+  ],
+  "properties": {
+    "doc_id": { "type": "string" },
+    "revision_ganadora": { "type": "string" },
+    "revisiones_en_conflicto": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["_rev", "base", "iva", "total"],
+        "properties": {
+          "_rev": { "type": "string" },
+          "base": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" },
+          "iva": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" },
+          "total": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "campos_en_conflicto": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["base", "iva", "total"] }
+    },
+    "estado": { "type": "string", "enum": ["pendiente", "resuelto"] },
+    "detectado_en": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "additionalProperties": false
+}

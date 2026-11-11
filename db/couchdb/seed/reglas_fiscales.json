@@ -5,16 +5,20 @@
       "descripcion": "Tasa general del IVA (Impuesto a la Transferencia de Bienes Muebles y a la Prestacion de Servicios)",
       "parametros": { "tasa": "0.13" },
       "vigencia_desde": "1995-07-01", "vigencia_hasta": null,
-      "fuente_normativa": "Ley de IVA (El Salvador), art. 54 - VERIFICAR articulo y vigencia",
-      "verificada": false
+      "fuente_normativa": "Ley de IVA (El Salvador), art. 54, fecha de consulta: TODO",
+      "verificada": false,
+      "verificada_por": null,
+      "fecha_verificacion": null
     },
     {
       "_id": "regla:pago_cuenta:v1", "tipo": "regla_fiscal", "codigo": "pago_cuenta", "version": 1,
       "descripcion": "Pago a cuenta mensual del impuesto sobre la renta, sobre ingresos brutos del mes",
       "parametros": { "tasa": "0.0175", "base": "ingresos_brutos_mensuales", "redondeo": "half_up_2" },
       "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
-      "fuente_normativa": "Codigo Tributario, art. 151 - VERIFICAR tasa, excepciones y fecha de vigencia",
-      "verificada": false
+      "fuente_normativa": "Código Tributario, art. 151, fecha de consulta: TODO",
+      "verificada": false,
+      "verificada_por": null,
+      "fecha_verificacion": null
     },
     {
       "_id": "regla:renta_natural_tramos:v1", "tipo": "regla_fiscal", "codigo": "renta_natural_tramos", "version": 1,
@@ -28,48 +32,60 @@
         ]
       },
       "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
-      "fuente_normativa": "Ley de Impuesto sobre la Renta, art. 37 - VERIFICAR tramos vigentes",
-      "verificada": false
+      "fuente_normativa": "Ley de Impuesto sobre la Renta, art. 37, fecha de consulta: TODO",
+      "verificada": false,
+      "verificada_por": null,
+      "fecha_verificacion": null
     },
     {
       "_id": "regla:renta_juridica:v1", "tipo": "regla_fiscal", "codigo": "renta_juridica", "version": 1,
       "descripcion": "Tasa de renta para persona juridica",
       "parametros": { "tasa_general": "0.30", "tasa_reducida": "0.25", "umbral_ingresos_anuales": "150000.00" },
       "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
-      "fuente_normativa": "Ley de Impuesto sobre la Renta, art. 41 - VERIFICAR tasas y umbral",
-      "verificada": false
+      "fuente_normativa": "Ley de Impuesto sobre la Renta, art. 41, fecha de consulta: TODO",
+      "verificada": false,
+      "verificada_por": null,
+      "fecha_verificacion": null
     },
     {
       "_id": "regla:plazo_iva_f07:v1", "tipo": "regla_fiscal", "codigo": "plazo_iva_f07", "version": 1,
       "descripcion": "Presentacion y pago de IVA mensual",
       "parametros": { "modo": "dias_habiles_mes_siguiente", "dias": 10 },
       "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
-      "fuente_normativa": "Ley de IVA - VERIFICAR plazo y calendario de dias habiles/feriados",
-      "verificada": false
+      "fuente_normativa": "Ley de IVA, art. TODO, fecha de consulta: TODO",
+      "verificada": false,
+      "verificada_por": null,
+      "fecha_verificacion": null
     },
     {
       "_id": "regla:plazo_pago_cuenta_f14:v1", "tipo": "regla_fiscal", "codigo": "plazo_pago_cuenta_f14", "version": 1,
       "descripcion": "Declaracion y pago del pago a cuenta mensual",
       "parametros": { "modo": "dias_habiles_mes_siguiente", "dias": 10 },
       "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
-      "fuente_normativa": "Codigo Tributario - VERIFICAR plazo",
-      "verificada": false
+      "fuente_normativa": "Código Tributario, art. TODO, fecha de consulta: TODO",
+      "verificada": false,
+      "verificada_por": null,
+      "fecha_verificacion": null
     },
     {
       "_id": "regla:plazo_renta_anual_f11:v1", "tipo": "regla_fiscal", "codigo": "plazo_renta_anual_f11", "version": 1,
       "descripcion": "Declaracion anual de renta",
       "parametros": { "modo": "fecha_fija_anual", "mes": 4, "dia": 30 },
       "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
-      "fuente_normativa": "Ley de Impuesto sobre la Renta - VERIFICAR plazo",
-      "verificada": false
+      "fuente_normativa": "Ley de Impuesto sobre la Renta, art. TODO, fecha de consulta: TODO",
+      "verificada": false,
+      "verificada_por": null,
+      "fecha_verificacion": null
     },
     {
       "_id": "regla:multa_extemporanea:v1", "tipo": "regla_fiscal", "codigo": "multa_extemporanea", "version": 1,
       "descripcion": "PLACEHOLDER: multa estimada por presentacion extemporanea. Completar solo tras verificar la normativa.",
       "parametros": { "estado": "por_definir" },
       "vigencia_desde": "2020-01-01", "vigencia_hasta": null,
-      "fuente_normativa": "Codigo Tributario - POR DEFINIR (no usar en calculos hasta verificar)",
-      "verificada": false
+      "fuente_normativa": "Código Tributario, art. TODO, fecha de consulta: TODO",
+      "verificada": false,
+      "verificada_por": null,
+      "fecha_verificacion": null
     }
   ]
 }

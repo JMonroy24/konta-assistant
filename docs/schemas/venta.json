@@ -1,24 +1,33 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "DocumentoVenta",
+  "title": "OperacionVenta",
   "type": "object",
-  "required": ["_id", "tipo", "fecha", "base", "iva", "total", "contraparte", "creado_por", "origen"],
+  "required": [
+    "_id",
+    "tipo",
+    "fecha",
+    "descripcion",
+    "base",
+    "iva",
+    "total",
+    "contraparte",
+    "creado_por",
+    "origen",
+    "creado_en"
+  ],
   "properties": {
-    "_id": {
-      "type": "string",
-      "pattern": "^venta:[0-9]{4}-[0-9]{2}-[0-9]{2}:[a-zA-Z0-9_-]+$",
-      "description": "ID determinístico o con UUID generado en el cliente"
-    },
+    "_id": { "type": "string" },
     "_rev": { "type": "string" },
-    "tipo": { "type": "string", "enum": ["venta"] },
+    "tipo": { "type": "string", "const": "venta" },
     "fecha": { "type": "string", "format": "date" },
     "descripcion": { "type": "string" },
-    "base": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]{2})?$" },
-    "iva": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]{2})?$" },
-    "total": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]{2})?$" },
+    "base": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" },
+    "iva": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" },
+    "total": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" },
     "contraparte": { "type": "string" },
     "creado_por": { "type": "string" },
-    "origen": { "type": "string", "enum": ["local", "remoto"] },
+    "origen": { "type": "string" },
     "creado_en": { "type": "string", "format": "date-time" }
-  }
+  },
+  "additionalProperties": false
 }

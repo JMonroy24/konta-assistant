@@ -1,15 +1,26 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "DocumentoRecordatorio",
+  "title": "Recordatorio",
   "type": "object",
-  "required": ["_id", "tipo", "obligacion", "fecha_limite", "estado", "negocio_id"],
+  "required": [
+    "_id",
+    "tipo",
+    "obligacion",
+    "fecha_limite",
+    "estado",
+    "negocio_id"
+  ],
   "properties": {
     "_id": { "type": "string" },
     "_rev": { "type": "string" },
-    "tipo": { "type": "string", "enum": ["recordatorio"] },
-    "obligacion": { "type": "string" },
+    "tipo": { "type": "string" },
+    "obligacion": {
+      "type": "string",
+      "enum": ["iva_f07", "pago_cuenta_f14", "renta_f11"]
+    },
     "fecha_limite": { "type": "string", "format": "date" },
     "estado": { "type": "string", "enum": ["pendiente", "enviado", "cumplido"] },
     "negocio_id": { "type": "string" }
-  }
+  },
+  "additionalProperties": false
 }

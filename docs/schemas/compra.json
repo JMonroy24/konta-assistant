@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OperacionCompra",
+  "type": "object",
+  "required": [
+    "_id",
+    "tipo",
+    "fecha",
+    "descripcion",
+    "base",
+    "iva",
+    "total",
+    "contraparte",
+    "creado_por",
+    "origen",
+    "creado_en"
+  ],
+  "properties": {
+    "_id": { "type": "string" },
+    "_rev": { "type": "string" },
+    "tipo": { "type": "string", "const": "compra" },
+    "fecha": { "type": "string", "format": "date" },
+    "descripcion": { "type": "string" },
+    "base": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" },
+    "iva": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" },
+    "total": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$" },
+    "contraparte": { "type": "string" },
+    "creado_por": { "type": "string" },
+    "origen": { "type": "string" },
+    "creado_en": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}
