@@ -32,3 +32,5 @@ bench/results/
 # CouchDB local data if mounted locally
 couchdb-data/
 postgres-data/
+
+opencode.json
