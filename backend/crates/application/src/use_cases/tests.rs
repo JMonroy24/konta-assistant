@@ -285,3 +285,44 @@ async fn emitir_factura_sin_respuesta_permanece_pendiente() {
         .expect("factura pendiente persistida");
     assert_eq!(guardada.estado_validacion, EstadoFactura::Pendiente);
 }
+
+#[tokio::test]
+async fn consultar_operaciones_filtra_por_periodo() {
+    let almacen = Arc::new(AlmacenEnMemoria::nuevo());
+    let op1 = operacion_valida("venta-nov", fecha("2026-11-05"), TipoOperacion::Venta);
+    let op2 = operacion_valida("compra-nov", fecha("2026-11-10"), TipoOperacion::Compra);
+    let op3 = operacion_valida("venta-dic", fecha("2026-12-01"), TipoOperacion::Venta);
+
+    almacen
+        .guardar_operacion("negocio_001", op1)
+        .await
+        .expect("guardar op1");
+    almacen
+        .guardar_operacion("negocio_001", op2)
+        .await
+        .expect("guardar op2");
+    almacen
+        .guardar_operacion("negocio_001", op3)
+        .await
+        .expect("guardar op3");
+
+    let caso = ConsultarOperaciones::new(almacen);
+    let ops_nov = caso
+        .ejecutar("negocio_001", "2026-11")
+        .await
+        .expect("listar nov");
+    assert_eq!(ops_nov.len(), 2);
+
+    let ops_dic = caso
+        .ejecutar("negocio_001", "2026-12")
+        .await
+        .expect("listar dic");
+    assert_eq!(ops_dic.len(), 1);
+
+    // Casos de borde: negocio_id vacío y período mal formado
+    let error_negocio = caso.ejecutar("   ", "2026-11").await;
+    assert!(matches!(error_negocio, Err(DomainError::ValidacionError(_))));
+
+    let error_periodo = caso.ejecutar("negocio_001", "2026-13").await;
+    assert!(matches!(error_periodo, Err(DomainError::FechaInvalida(_))));
+}

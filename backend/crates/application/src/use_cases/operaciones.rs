@@ -42,3 +42,32 @@ impl RegistrarOperacion {
             .await
     }
 }
+
+/// Consulta operaciones de un período (AAAA-MM) para un negocio específico.
+pub struct ConsultarOperaciones {
+    operaciones: Arc<dyn OperacionRepository>,
+}
+
+impl ConsultarOperaciones {
+    pub fn new(operaciones: Arc<dyn OperacionRepository>) -> Self {
+        Self { operaciones }
+    }
+
+    pub async fn ejecutar(
+        &self,
+        negocio_id: &str,
+        anio_mes: &str,
+    ) -> Result<Vec<Operacion>, DomainError> {
+        if negocio_id.trim().is_empty() {
+            return Err(DomainError::ValidacionError(
+                "El identificador de negocio no puede estar vacío".into(),
+            ));
+        }
+
+        // Valida que el período cumpla estrictamente con el formato YYYY-MM
+        let periodo = domain::Periodo::parse(anio_mes)?;
+        self.operaciones
+            .listar_por_periodo(negocio_id, &periodo.to_string())
+            .await
+    }
+}

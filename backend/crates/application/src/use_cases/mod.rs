@@ -12,7 +12,7 @@ mod sincronizacion;
 
 pub use declaraciones::GenerarBorradorDeclaracion;
 pub use facturas::EmitirFactura;
-pub use operaciones::RegistrarOperacion;
+pub use operaciones::{ConsultarOperaciones, RegistrarOperacion};
 pub use recordatorios::ListarRecordatorios;
 pub use resumen::ConsultarResumenImpuestos;
 pub use sincronizacion::{
