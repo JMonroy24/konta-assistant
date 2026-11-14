@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'core/offline_queue.dart';
+import 'core/sync_service.dart';
 import 'core/auth_service.dart';
 import 'core/theme.dart';
 import 'features/auth/login_screen.dart';
@@ -104,19 +106,60 @@ class MainLayoutScreen extends StatefulWidget {
 
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _currentIndex = 0;
-  final bool _isOnline = true;
-  final int _pendingSyncCount = 0;
+  bool _isOnline = true;
+  int _pendingSyncCount = 0;
 
-  final List<Widget> _screens = const [
-    DashboardScreen(),
-    VentasComprasScreen(),
-    FacturacionScreen(),
-    DeclaracionesScreen(),
-    RecordatoriosScreen(),
-  ];
+  final OfflineQueue _offlineQueue = OfflineQueue();
+  late final SyncService _syncService;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncService = SyncService(offlineQueue: _offlineQueue);
+    _actualizarEstadoCola();
+  }
+
+  Future<void> _actualizarEstadoCola() async {
+    await _offlineQueue.init();
+    if (!mounted) return;
+    setState(() {
+      _pendingSyncCount = _offlineQueue.pendingCount;
+    });
+  }
+
+  Future<void> _sincronizarAhora() async {
+    final res = await _syncService.syncPending(authToken: widget.session.token);
+    if (!mounted) return;
+    setState(() {
+      _pendingSyncCount = _offlineQueue.pendingCount;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(res.mensaje),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  List<Widget> _buildScreens() {
+    return [
+      DashboardScreen(
+        session: widget.session,
+        offlineQueue: _offlineQueue,
+        syncService: _syncService,
+        onNavegarOperaciones: () => setState(() => _currentIndex = 1),
+      ),
+      VentasComprasScreen(session: widget.session),
+      const FacturacionScreen(),
+      const DeclaracionesScreen(),
+      const RecordatoriosScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final screens = _buildScreens();
+
     return Scaffold(
       appBar: AppBar(
         title: Image.asset(
@@ -143,44 +186,58 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       ),
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-            color: _isOnline ? Colors.green.shade700 : Colors.red.shade700,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      _isOnline ? Icons.cloud_done : Icons.cloud_off,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _isOnline ? 'En línea (Sincronizado)' : 'Modo Sin Conexión',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ],
-                ),
-                Text(
-                  'Pendientes: $_pendingSyncCount',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+          InkWell(
+            onTap: _pendingSyncCount > 0 ? _sincronizarAhora : () => setState(() => _isOnline = !_isOnline),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+              color: _isOnline ? Colors.green.shade700 : Colors.orange.shade800,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        _isOnline ? Icons.cloud_done : Icons.cloud_off,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isOnline ? 'En línea (Sincronizado)' : 'Modo Sin Conexión (Toca para alternar)',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  Row(
+                    children: [
+                      Text(
+                        'Pendientes: $_pendingSyncCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (_pendingSyncCount > 0) ...[
+                        const SizedBox(width: 6),
+                        const Icon(Icons.sync, color: Colors.white, size: 14),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          Expanded(child: _screens[_currentIndex]),
+          Expanded(child: screens[_currentIndex]),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          _actualizarEstadoCola();
+          setState(() => _currentIndex = index);
+        },
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
