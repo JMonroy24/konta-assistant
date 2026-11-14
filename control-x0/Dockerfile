@@ -1,4 +1,4 @@
-FROM rust:1.80-slim as builder
+FROM rust:1.89-slim AS builder
 WORKDIR /app
 COPY control-x0 /app/control-x0
 WORKDIR /app/control-x0

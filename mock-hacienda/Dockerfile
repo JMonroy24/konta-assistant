@@ -1,4 +1,4 @@
-FROM rust:1.80-slim as builder
+FROM rust:1.89-slim AS builder
 WORKDIR /app
 COPY mock-hacienda /app/mock-hacienda
 WORKDIR /app/mock-hacienda
