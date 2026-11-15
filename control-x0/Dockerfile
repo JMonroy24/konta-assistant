@@ -1,5 +1,6 @@
-FROM rust:1.80-slim as builder
+FROM rust:slim as builder
 WORKDIR /app
+RUN apt-get update && apt-get install -y pkg-config libssl-dev
 COPY control-x0 /app/control-x0
 WORKDIR /app/control-x0
 RUN cargo build --release
