@@ -7,7 +7,7 @@ RUN cargo build --release -p api
 
 FROM debian:bookworm-slim
 WORKDIR /app
-RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ca-certificates curl libssl3 && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/backend/target/release/api /app/konta-api
 EXPOSE 8080
 CMD ["/app/konta-api"]
