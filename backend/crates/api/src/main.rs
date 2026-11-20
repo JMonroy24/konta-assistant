@@ -7,10 +7,25 @@ use axum::{
     Router,
 };
 use handlers::*;
-use std::net::SocketAddr;
+use infrastructure::{CouchDbRepository, MockHaciendaClient};
+use std::{net::SocketAddr, sync::Arc};
 use telemetry::telemetry_middleware;
 use tower_http::cors::CorsLayer;
 use tracing::info;
+
+fn build_couchdb_url(raw_url: &str, user: &str, pass: &str) -> String {
+    let trimmed = raw_url.trim_end_matches('/');
+    if trimmed.contains('@') || user.is_empty() {
+        return trimmed.to_string();
+    }
+    if let Some(rest) = trimmed.strip_prefix("http://") {
+        format!("http://{}:{}@{}", user, pass, rest)
+    } else if let Some(rest) = trimmed.strip_prefix("https://") {
+        format!("https://{}:{}@{}", user, pass, rest)
+    } else {
+        trimmed.to_string()
+    }
+}
 
 #[tokio::main]
 async fn main() {
@@ -23,6 +38,27 @@ async fn main() {
         .init();
 
     info!("Iniciando Konta Assistant Backend (X1 - CouchDB Clean Architecture)...");
+
+    let couch_raw = std::env::var("COUCHDB_LOCAL_URL")
+        .unwrap_or_else(|_| "http://couchdb-local:5984".into());
+    let couch_user = std::env::var("COUCHDB_USER").unwrap_or_else(|_| "admin".into());
+    let couch_pass =
+        std::env::var("COUCHDB_PASSWORD").unwrap_or_else(|_| "adminsecretpassword".into());
+    let mock_hacienda_url = std::env::var("MOCK_HACIENDA_URL")
+        .unwrap_or_else(|_| "http://mock-hacienda:8081".into());
+    let negocio_id = std::env::var("COUCHDB_NEGOCIO_ID").unwrap_or_else(|_| "demo".into());
+
+    let couch_url = build_couchdb_url(&couch_raw, &couch_user, &couch_pass);
+    info!(
+        "Conectando a CouchDB local ({}) en base negocio_{}",
+        couch_raw, negocio_id
+    );
+
+    let state = AppState {
+        couchdb: Arc::new(CouchDbRepository::new(couch_url)),
+        hacienda: Arc::new(MockHaciendaClient::new(mock_hacienda_url)),
+        negocio_id,
+    };
 
     let app = Router::new()
         // Auth & Roles
@@ -45,7 +81,8 @@ async fn main() {
         .route("/salud", get(salud_handler))
         .route("/metricas", get(metricas_handler))
         .layer(middleware::from_fn(telemetry_middleware))
-        .layer(CorsLayer::permissive());
+        .layer(CorsLayer::permissive())
+        .with_state(state);
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "8080".into());
     let addr: SocketAddr = format!("0.0.0.0:{}", port)

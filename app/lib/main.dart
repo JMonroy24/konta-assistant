@@ -10,8 +10,11 @@ import 'features/ventas_compras/ventas_compras_screen.dart';
 import 'features/facturacion/facturacion_screen.dart';
 import 'features/declaraciones/declaraciones_screen.dart';
 import 'features/recordatorios/recordatorios_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting();
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const KontaApp());
 }
