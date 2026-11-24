@@ -449,11 +449,11 @@ Resumen de [`AGENTS.md`](AGENTS.md), de cumplimiento obligatorio:
 
 | Integrante | Rol | Responsabilidades |
 | :--- | :--- | :--- |
-| **Melvin** | Núcleo de dominio y motor fiscal | `domain`, `application`, `tax-engine`, reglas versionadas, revisión de contratos |
-| **Josué** | Infraestructura CouchDB y API | Repositorios, índices, `validate_doc_update`, replicación, rutas Axum, Docker Compose, X0, `mock-hacienda` |
-| **Kevin** | Autenticación y facturación | RBAC y tokens, DTE simulados, pantallas de login y facturación, datos sintéticos |
-| **William** | Declaraciones, recordatorios y telemetría | Borrador de declaración, calendario, middleware de telemetría, exportación a CSV |
-| **Benito** | Ventas/compras y sincronización | Operaciones, dashboard con estado de conexión y cola offline, linters y pruebas de la app |
+| **Melvin Monroy** | Núcleo de dominio y motor fiscal | `domain`, `application`, `tax-engine`, reglas versionadas, revisión de contratos |
+| **Josué Escobar EA24012** | Infraestructura CouchDB y API | Repositorios, índices, `validate_doc_update`, replicación, rutas Axum, Docker Compose, X0, `mock-hacienda` |
+| **Kevin Javier JC24011** | Autenticación y facturación | RBAC y tokens, DTE simulados, pantallas de login y facturación, datos sintéticos |
+| **William Zuniga LZ23003** | Declaraciones, recordatorios y telemetría | Borrador de declaración, calendario, middleware de telemetría, exportación a CSV |
+| **Benito Palma PR24039** | Ventas/compras y sincronización | Operaciones, dashboard con estado de conexión y cola offline, linters y pruebas de la app |
 
 ---
 
